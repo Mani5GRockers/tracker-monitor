@@ -16,10 +16,14 @@ function getResponseTime($host, $port) {
 
 function getHostingProvider($ip) {
     $whois = shell_exec("whois " . escapeshellarg($ip));
-    if (preg_match('/^OrgName:\s*(.+)$/mi', $whois, $match)) {
-        return trim($match[1]);
-    }
-    return 'Unknown';
+
+    // Match all common fields in order of preference
+    preg_match('/descr:\s*(.+)/i', $whois, $descr);
+    preg_match('/netname:\s*(.+)/i', $whois, $net);
+    preg_match('/org-name:\s*(.+)/i', $whois, $org);
+    preg_match('/OrgName:\s*(.+)/i', $whois, $org2);
+
+    return $descr[1] ?? $net[1] ?? $org[1] ?? $org2[1] ?? 'Unknown';
 }
 
 
