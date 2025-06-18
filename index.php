@@ -223,7 +223,7 @@ function getUptime($s, $f) {
     <?php
     if ($rank === 1) echo "🥇";
     elseif ($rank === 2) echo "🥈";
-    elseif ($rank === 3) echo "";
+    elseif ($rank === 3) echo "🥉";
     else echo $rank;
     $rank++;
     ?>
