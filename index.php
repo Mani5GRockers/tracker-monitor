@@ -134,6 +134,22 @@ function getUptime($s, $f) {
     <meta charset="UTF-8">
     <title>Tracker Rank Monitor</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<!-- Preconnect to favicon service for faster loading -->
+<link rel="preconnect" href="https://www.google.com">
+
+<!-- Optional: your page favicon -->
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+<!-- Style for tracker favicons -->
+<style>
+    .favicon {
+        width: 16px;
+        height: 16px;
+        vertical-align: middle;
+        margin-right: 6px;
+    }
+</style>
+
     <style>
         body { font-family: sans-serif; background: #f7f7f7; padding: 20px; }
         table { width: 100%; border-collapse: collapse; background: #fff; margin-top: 20px; }
