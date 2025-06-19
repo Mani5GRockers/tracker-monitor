@@ -344,7 +344,6 @@ function getUptime($s, $f) {
         <th>URL</th>
         <th>IP</th>
         <th>Country</th>
-        <th>Provider</th>
         <th>ISP</th>
         <th>Protocol</th> <!-- New column -->
         <th>Status</th>
