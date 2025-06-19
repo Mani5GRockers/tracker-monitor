@@ -48,33 +48,41 @@ $trackers = file_exists(DATA_FILE) ? json_decode(file_get_contents(DATA_FILE), t
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['trackers'])) {
     $newTrackers = array_filter(array_map('trim', explode("\n", $_POST['trackers'])));
-    foreach ($newTrackers as $url) {
-        if (!isset($trackers[$url]) && (filter_var($url, FILTER_VALIDATE_URL) || stripos($url, 'udp://') === 0)) {
-            $host = parse_url($url, PHP_URL_HOST);
-$ip = @gethostbyname($host);
-if ($ip === $host || !$ip || filter_var($ip, FILTER_VALIDATE_IP) === false) {
-    continue; // Skip if IP is invalid or unresolved
-}
-            $geo = getGeoIP($ip);
-            $country = $geo['country'] ?? 'Unknown';
-            $flag = isset($geo['countryCode']) ? getCountryFlag($geo['countryCode']) : '🌍';
-            $provider = getHostingProvider($ip);
-            $responseTime = getResponseTime($host, parse_url($url, PHP_URL_PORT) ?? 80);
-            $trackers[$url] = [
-                'url' => $url,
-                'ip' => $ip ?: 'N/A',
-                'country' => $country,
-                'flag' => $flag,
-                'provider' => $provider,
-                'response_time' => $responseTime,
-                'added' => date('d-m-Y'),
-                'last_status' => 'Unchecked',
-                'last_checked' => 'Never',
-                'success' => 0,
-                'fail' => 0
-            ];
+foreach ($newTrackers as $url) {
+    $url = trim($url);
+    $validProtocol = preg_match('#^(udp|http|https|wss)://#i', $url);
+    $endsCorrectly = preg_match('#/announce$#i', $url) || stripos($url, 'wss://') === 0;
+
+    if ($validProtocol && $endsCorrectly && !isset($trackers[$url])) {
+        $host = parse_url($url, PHP_URL_HOST);
+        $ip = @gethostbyname($host);
+        if ($ip === $host || !$ip || filter_var($ip, FILTER_VALIDATE_IP) === false) {
+            continue;
         }
+        $geo = getGeoIP($ip);
+        $country = $geo['country'] ?? 'Unknown';
+        $flag = isset($geo['countryCode']) ? getCountryFlag($geo['countryCode']) : '';
+        $provider = getHostingProvider($ip);
+        $responseTime = getResponseTime($host, parse_url($url, PHP_URL_PORT) ?? 80);
+
+        $trackers[$url] = [
+            'url' => $url,
+            'ip' => $ip ?: 'N/A',
+            'country' => $country,
+            'country_code' => $geo['countryCode'] ?? '', //  Add this line
+
+            'flag' => $flag,
+            'provider' => $provider,
+            'response_time' => $responseTime,
+            'added' => date('d-m-Y'),
+            'last_status' => 'Unchecked',
+            'last_checked' => 'Never',
+            'success' => 0,
+            'fail' => 0
+        ];
     }
+}
+
     file_put_contents(DATA_FILE, json_encode($trackers, JSON_PRETTY_PRINT));
     header('Location: ' . $_SERVER['PHP_SELF']);
     exit;
@@ -102,6 +110,9 @@ function isOnline($url) {
     } else {
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_NOBODY, true);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_HEADER, false);
         curl_setopt($ch, CURLOPT_TIMEOUT, 5);
         curl_exec($ch);
         $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -155,8 +166,8 @@ function getUptime($s, $f) {
 </style>
 
     <style>
-        body { font-family: sans-serif; background: #f7f7f7; padding: 20px; }
-        table { width: 100%; border-collapse: collapse; background: #fff; margin-top: 20px; }
+        body { font-family: sans-serif; background: #eef6ff; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; background: #eef6ff; margin-top: 20px; }
         th, td { border: 1px solid #ccc; padding: 8px; font-size: 14px; }
         th { background: #333; color: white; }
         .online { color: green; font-weight: bold; }
@@ -190,7 +201,7 @@ function getUptime($s, $f) {
     max-width: 600px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
 ">
-  <h3 style="margin-top: 0; color: #007bff;">🏆 Top 3 Reliable & Fast Trackers</h3>
+  <h3 style="margin-top: 0; color: #007bff;"> Top 3 Reliable & Fast Trackers</h3>
   <ol id="topTrackersList">
     <li>Loading...</li>
   </ol>
@@ -215,7 +226,7 @@ function getUptime($s, $f) {
         <th>Provider</th>
         <th>Protocol</th> <!-- New column -->
         <th>Status</th>
-        <th>Uptime %</th>
+        <th>Uptime</th>
         <th>Latency</th>
         <th>Last Checked</th>
         <th>Added</th>
@@ -254,7 +265,14 @@ function getUptime($s, $f) {
         <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
     </td>
     <td><?= $t['ip'] ?></td>
-    <td><?= $t['flag'] . ' ' . $t['country'] ?></td>
+<td>
+    <?php if (!empty($t['country_code'])): ?>
+        <img src="https://flagcdn.com/24x18/<?= strtolower($t['country_code']) ?>.png" 
+             alt="<?= $t['country'] ?>" 
+             style="vertical-align: middle; margin-right: 5px; border:1px solid #ccc; border-radius:2px;" />
+    <?php endif; ?>
+    <?= $t['country'] ?? 'Unknown' ?>
+</td>
     <td><?= $t['provider'] ?></td>
     <td><strong><?= strtoupper(parse_url($t['url'], PHP_URL_SCHEME)) ?></strong></td> <!-- Protocol -->
     <td class="<?= strtolower($t['last_status']) ?>"><?= $t['last_status'] ?></td>
@@ -283,10 +301,17 @@ function getUptime($s, $f) {
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
 ">
   <h3 style="margin-top: 0; color: #28a745;">Your IP & Network Info</h3>
-  <p><strong>IP Address:</strong> <span id="ipAddress">Detecting...</span></p>
-  <p><strong>Country:</strong> <span id="country">Detecting...</span></p>
-  <p><strong>Provider:</strong> <span id="provider">Detecting...</span></p>
-  <p><strong>Network:</strong> <span id="network">Detecting...</span></p>
+  <p><strong>IP V4 Address:</strong> <span id="ipAddress">Detecting...</span></p>
+    <p><strong>Provider:</strong> <span id="provider">Detecting...</span></p>
+<p><strong>🏳 Country:</strong> <img id="flagIcon" src="" style="height: 16px; vertical-align: middle;" /> <span id="country">Detecting...</span></p>
+<p><strong>️ OS:</strong> <img id="osIcon" src="" style="height: 16px; vertical-align: middle;" /> <span id="osName">Detecting...</span></p>
+<p><strong> Browser:</strong> <img id="browserIcon" src="" style="height: 16px; vertical-align: middle;" /> <span id="browserName">Detecting...</span></p>
+
+  <p><strong>Region:</strong> <span id="region">Detecting...</span></p>
+<p><strong>City:</strong> <span id="city">Detecting...</span></p>
+<p><strong>📮 Postal Code:</strong> <span id="postal">Detecting...</span></p>
+<p><strong>Timezone:</strong> <span id="timezone">Detecting...</span></p>
+
 </div>
 </center>
 
@@ -299,7 +324,7 @@ function updateTopTrackers() {
             list.innerHTML = '';
             data.forEach(t => {
                 const li = document.createElement('li');
-                li.innerHTML = `<code>${t.url}</code><br>🔁 Uptime: ${t.uptime}% | ⚡ Latency: ${t.latency} ms`;
+                li.innerHTML = `<code>${t.url}</code><br> Uptime: ${t.uptime}% | ⚡ Latency: ${t.latency} ms`;
                 list.appendChild(li);
             });
         })
@@ -319,7 +344,7 @@ function updateTrackerStats() {
         .then(res => res.json())
         .then(data => {
             document.getElementById('trackerStats').innerHTML =
-                `✅ Live trackers: ${data.live} / ❌ Trackers down: ${data.down} / 🌐 Total trackers: ${data.total}`;
+                `✅ Live trackers: ${data.live} /  Trackers down: ${data.down} / 🌐 Total trackers: ${data.total}`;
         })
         .catch(() => {
             document.getElementById('trackerStats').innerText = "Failed to load tracker stats.";
@@ -327,7 +352,7 @@ function updateTrackerStats() {
 }
 
 updateTrackerStats(); // first load
-setInterval(updateTrackerStats, 15000); // auto-refresh every 15 sec
+setInterval(updateTrackerStats, 20000); // auto-refresh every 15 sec
 </script>
 
 <script>
@@ -365,15 +390,59 @@ function filterTable() {
     });
 }
 
+
+function detectBrowserName() {
+    const ua = navigator.userAgent;
+
+    if (ua.includes("Brave")) return { name: "Brave", icon: "https://img.icons8.com/color/48/000000/brave.png" };
+    if (ua.includes("Vivaldi")) return { name: "Vivaldi", icon: "https://img.icons8.com/color/48/000000/vivaldi-browser.png" };
+    if (ua.includes("SamsungBrowser")) return { name: "Samsung Internet", icon: "https://img.icons8.com/color/48/000000/samsung-internet.png" };
+    if (ua.includes("DuckDuckGo")) return { name: "DuckDuckGo", icon: "https://img.icons8.com/color/48/000000/duckduckgo.png" };
+    if (ua.includes("UCBrowser")) return { name: "UC Browser", icon: "https://img.icons8.com/color/48/000000/uc-browser.png" };
+    if (ua.includes("Edg")) return { name: "Edge", icon: "https://img.icons8.com/color/48/000000/ms-edge-new.png" };
+    if (ua.includes("OPR") || ua.includes("Opera")) return { name: "Opera", icon: "https://img.icons8.com/color/48/000000/opera.png" };
+    if (ua.includes("Firefox")) return { name: "Firefox", icon: "https://img.icons8.com/color/48/000000/firefox.png" };
+    if (ua.includes("Safari") && !ua.includes("Chrome")) return { name: "Safari", icon: "https://img.icons8.com/color/48/000000/safari--v1.png" };
+    if (ua.includes("Chrome") && !ua.includes("Edg")) return { name: "Chrome", icon: "https://img.icons8.com/color/48/000000/chrome.png" };
+    if (ua.includes("Maxthon")) return { name: "Maxthon", icon: "https://img.icons8.com/color/48/000000/maxthon.png" };
+    if (ua.includes("Yandex")) return { name: "Yandex", icon: "https://img.icons8.com/color/48/000000/yandex-browser.png" };
+    if (ua.includes("Baidu")) return { name: "Baidu Browser", icon: "https://img.icons8.com/color/48/000000/baidu.png" };
+    if (ua.includes("Tor")) return { name: "Tor Browser", icon: "https://img.icons8.com/color/48/000000/tor-browser.png" };
+    if (ua.includes("Avant")) return { name: "Avant Browser", icon: "https://img.icons8.com/ios-filled/50/000000/a.png" };
+    if (ua.includes("MiuiBrowser")) return { name: "Mi Browser", icon: "https://img.icons8.com/color/48/000000/xiaomi.png" };
+    if (ua.includes("360Browser")) return { name: "360 Browser", icon: "https://img.icons8.com/color/48/000000/360.png" };
+
+    return { name: "Unknown", icon: "https://img.icons8.com/ios/50/000000/help.png" };
+}
+
+function detectOS() {
+    const platform = navigator.userAgent;
+    if (platform.includes("Win")) return { name: "Windows", icon: "https://img.icons8.com/color/48/000000/windows-10.png" };
+    if (platform.includes("Mac")) return { name: "macOS", icon: "https://img.icons8.com/color/48/000000/mac-os.png" };
+    if (platform.includes("Linux")) return { name: "Linux", icon: "https://img.icons8.com/color/48/000000/linux.png" };
+    if (platform.includes("Android")) return { name: "Android", icon: "https://img.icons8.com/color/48/000000/android-os.png" };
+    if (platform.includes("iPhone") || platform.includes("iPad")) return { name: "iOS", icon: "https://img.icons8.com/color/48/000000/ios-logo.png" };
+    return { name: "Unknown", icon: "" };
+}
+
 fetch("https://ipinfo.io/json?token=324708c6bee796")
   .then(res => res.json())
   .then(data => {
       document.getElementById("ipAddress").textContent = data.ip || "N/A";
       document.getElementById("country").textContent = data.country || "N/A";
+      document.getElementById("flagIcon").src = data.country ? `https://flagcdn.com/16x12/${data.country.toLowerCase()}.png` : "";
       document.getElementById("provider").textContent = data.org || "N/A";
-      document.getElementById("network").textContent = data.hostname || "N/A";
-  }).catch(() => {
-      document.getElementById("ipAddress").textContent = "N/A";
+      document.getElementById("region").textContent = data.region || "N/A";
+      document.getElementById("city").textContent = data.city || "N/A";
+      document.getElementById("postal").textContent = data.postal || "N/A";
+      document.getElementById("timezone").textContent = data.timezone || "N/A";
+      const browser = detectBrowserName();
+      document.getElementById("browserName").textContent = browser.name;
+      document.getElementById("browserIcon").src = browser.icon;
+
+      const os = detectOS();
+      document.getElementById("osName").textContent = os.name;
+      document.getElementById("osIcon").src = os.icon;
   });
 </script>
 
