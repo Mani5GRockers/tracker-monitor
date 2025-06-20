@@ -72,7 +72,7 @@ if ($ip === '127.0.0.1') {
 }
 
 // Block: unknown ISP or country
-if (strtolower($isp) === 'unknown' || strtolower($country) === 'unknown') {
+if (strtolower($isp) === 'Unknown' || strtolower($country) === 'Unknown') {
     continue; // Skip
 }
 
@@ -331,7 +331,7 @@ function getUptime($s, $f) {
   </div>
 </div>
 <div class="responsive-bar" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 7px; margin: 20px 0;">
-    <h3 style="margin: 0; flex: 1;">🌍 Torrent Trackers List</h3>
+    <h3 style="margin: 0; flex: 1;"> Torrent Trackers List</h3>
     <input type="text" id="searchBox" placeholder="Search tracker or country..." onkeyup="filterTable()" 
         style="padding: 6px; flex: 2; min-width: 150px; border: 2px solid #007bff; border-radius: 5px;">
     <div id="trackerStats" style="font-weight: bold; flex: 1; text-align: right;">
