@@ -108,7 +108,7 @@ foreach ($blockedISPs as $blocked) {
             'last_status' => 'Unchecked',
             'last_checked' => 'Never',
             'success' => 0,
-            "rank" => 1,
+            'rank' => 1,
             'fail' => 0
             
         ];
