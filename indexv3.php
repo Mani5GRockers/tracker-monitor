@@ -1,14 +1,4 @@
 <?php
-
-// Disabling source view (basic deterrent)
-echo "<script>
-  document.addEventListener('keydown', function(e) {
-    if ((e.ctrlKey || e.metaKey) && ['u', 's', 'i', 'j'].includes(e.key.toLowerCase())) e.preventDefault();
-    if (e.key === 'F12') e.preventDefault();
-  });
-  document.addEventListener('contextmenu', e => e.preventDefault());
-</script>";
-
 date_default_timezone_set('Asia/Kolkata');
 define('DATA_FILE', 'trackers_data.json');
 
