@@ -66,6 +66,18 @@ if ($isValid && !isset($trackers[$url])) {
         continue; // Skip offline trackers
     }
 
+// Block: localhost or loopback IP
+if ($ip === '127.0.0.1') {
+    continue; // Skip
+}
+
+// Block: unknown ISP or country
+if (strtolower($isp) === 'unknown' || strtolower($country) === 'unknown') {
+    continue; // Skip
+}
+
+
+
     $geo = getGeoIP($ip);
     $country = $geo['country'] ?? 'Unknown';
     $flag = isset($geo['countryCode']) ? getCountryFlag($geo['countryCode']) : '';
