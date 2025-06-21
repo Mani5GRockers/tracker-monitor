@@ -287,7 +287,7 @@ function getUptime($s, $f) {
 <nav style="background-color: #087f23; padding: 10px;">
   <ul style="display: flex; flex-wrap: wrap; list-style: none; margin: 0; padding: 0;">
     <li style="margin: 0 10px;">
-      <a href="index.php" style="color: white; text-decoration: none; font-weight: bold;"> Home</a>
+      <a href="index.php" style="color: white; text-decoration: none; font-weight: bold;">🏠 Home</a>
     </li>
     <li style="margin: 0 10px;">
       <a href="list.php" style="color: white; text-decoration: none; font-weight: bold;">📄 List</a>
@@ -296,10 +296,10 @@ function getUptime($s, $f) {
       <a href="submitted.php" style="color: white; text-decoration: none; font-weight: bold;">📥 Submitted</a>
     </li>
     <li style="margin: 0 10px;">
-      <a href="faq.php" style="color: white; text-decoration: none; font-weight: bold;"> FAQ</a>
+      <a href="faq.php" style="color: white; text-decoration: none; font-weight: bold;">❓ FAQ</a>
     </li>
     <li style="margin: 0 10px;">
-      <a href="https://github.com/Mani5GRockers/tracker-monitor" style="color: white; text-decoration: none; font-weight: bold;"> Source</a>
+      <a href="https://github.com/Mani5GRockers/tracker-monitor" style="color: white; text-decoration: none; font-weight: bold;">📂 Source</a>
     </li>
     <li style="margin: 0 10px;">
       <a href="about.php" style="color: white; text-decoration: none; font-weight: bold;">ℹ️ About</a>
