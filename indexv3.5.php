@@ -76,11 +76,6 @@ if (strtolower($isp) === 'Unknown' || strtolower($country) === 'Unknown') {
     continue; // Skip
 }
 
-// 🕑 skip duplicate IPs
-            if (in_array($ip, $usedIPs)) {
-                continue;
-            }
-
 
     $geo = getGeoIP($ip);
     $country = $geo['country'] ?? 'Unknown';
@@ -116,9 +111,6 @@ foreach ($blockedISPs as $blocked) {
             'fail' => 0
             
         ];
-
-            // Add to used IPs to avoid reuse
-            $usedIPs[] = $ip;
     }
 }
 
