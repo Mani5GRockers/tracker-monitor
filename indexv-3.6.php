@@ -67,9 +67,13 @@ if ($isValid && !isset($trackers[$url])) {
     }
 
 // Block: localhost or loopback IP
-if ($ip === '127.0.0.1') {
-    continue; // Skip
+if (
+    $ip === '127.0.0.1' || 
+    $ip === '127.127.127.127'
+) {
+    continue; // Skip loopback/fake IP
 }
+
 
 // Block: unknown ISP or country
 if (strtolower($isp) === 'unknown' || strtolower($country) === 'unknown') {
