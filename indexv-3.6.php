@@ -23,7 +23,7 @@ function getHostingProvider($ip) {
     preg_match('/org-name:\s*(.+)/i', $whois, $org);
     preg_match('/OrgName:\s*(.+)/i', $whois, $org2);
 
-    return $descr[1] ?? $net[1] ?? $org[1] ?? $org2[1] ?? 'Unknown';
+    return $descr[1] ?? $net[1] ?? $org[1] ?? $org2[1] ?? 'unknown';
 }
 
 
@@ -72,13 +72,13 @@ if ($ip === '127.0.0.1') {
 }
 
 // Block: unknown ISP or country
-if (strtolower($isp) === 'Unknown' || strtolower($country) === 'Unknown') {
+if (strtolower($isp) === 'unknown' || strtolower($country) === 'unknown') {
     continue; // Skip
 }
     $geo = getGeoIP($ip);
-    $country = $geo['country'] ?? 'Unknown';
+    $country = $geo['country'] ?? 'unknown';
     $flag = isset($geo['countryCode']) ? getCountryFlag($geo['countryCode']) : '';
-    $isp = $geo['isp'] ?? 'Unknown';
+    $isp = $geo['isp'] ?? 'unknown';
 // Block specific ISPs like Cloudflare
 $blockedISPs = ['cloudflare', 'cloudflarenet', 'cloudflare inc.'];
 $normalizedISP = strtolower($isp);
@@ -301,7 +301,7 @@ function getUptime($s, $f) {
       <a href="https://github.com/Mani5GRockers/tracker-monitor" style="color: white; text-decoration: none; font-weight: bold;">📂 Source</a>
     </li>
     <li style="margin: 0 10px;">
-      <a href="about.php" style="color: white; text-decoration: none; font-weight: bold;">️ About</a>
+      <a href="about.php" style="color: white; text-decoration: none; font-weight: bold;"> About</a>
     </li>
   </ul>
 </nav>
@@ -408,7 +408,7 @@ $rank++;
              alt="<?= $t['country'] ?>" 
              style="vertical-align: middle; margin-right: 5px; border:1px solid #ccc; border-radius:2px;" />
     <?php endif; ?>
-    <?= $t['country'] ?? 'Unknown' ?>
+    <?= $t['country'] ?? 'unknown' ?>
 </td>
     <td><?= htmlspecialchars($t['isp'] ?? 'N/A') ?></td>
 
