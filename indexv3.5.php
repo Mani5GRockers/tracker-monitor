@@ -75,13 +75,10 @@ if ($ip === '127.0.0.1') {
 if (strtolower($isp) === 'Unknown' || strtolower($country) === 'Unknown') {
     continue; // Skip
 }
-
-
     $geo = getGeoIP($ip);
     $country = $geo['country'] ?? 'Unknown';
     $flag = isset($geo['countryCode']) ? getCountryFlag($geo['countryCode']) : '';
     $isp = $geo['isp'] ?? 'Unknown';
-$isp = $geo['isp'] ?? 'Unknown';
 // Block specific ISPs like Cloudflare
 $blockedISPs = ['cloudflare', 'cloudflarenet', 'cloudflare inc.'];
 $normalizedISP = strtolower($isp);
@@ -407,7 +404,7 @@ $rank++;
     <td><?= $t['ip'] ?></td>
 <td>
     <?php if (!empty($t['country_code'])): ?>
-        <img src="https://flagcdn.com/24x18/<?= strtolower($t['country_code']) ?>.png" 
+       <img loading="lazy" src="https://flagcdn.com/24x18/<?= strtolower($t['country_code']) ?>.png" 
              alt="<?= $t['country'] ?>" 
              style="vertical-align: middle; margin-right: 5px; border:1px solid #ccc; border-radius:2px;" />
     <?php endif; ?>
