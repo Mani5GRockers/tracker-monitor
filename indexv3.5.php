@@ -195,6 +195,9 @@ function getUptime($s, $f) {
 <!-- Preconnect to favicon service for faster loading -->
 <!-- Optional: your page favicon -->
 <link rel="icon" href="/favicon.ico" type="image/x-icon">
+<link rel="preconnect" href="https://flagcdn.com">
+<link rel="preconnect" href="https://ipinfo.io">
+
     <style>
         body { font-family: sans-serif; background: #eef6ff; padding: 20px; }
         table { width: 100%; border-collapse: collapse; background: #eef6ff; margin-top: 20px; }
