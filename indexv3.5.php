@@ -443,9 +443,9 @@ $rank++;
   <p><strong>IP V4 Address:</strong> <span id="ipAddress">Detecting...</span></p>
     <p><strong>Provider:</strong> <span id="provider">Detecting...</span></p>
 <p><strong> Country:</strong> <img id="flagIcon" src="" style="height: 16px; vertical-align: middle;" /> <span id="country">Detecting...</span></p>
-<p><strong>️ OS:</strong> <img id="osIcon" src="" style="height: 16px; vertical-align: middle;" /> <span id="osName">Detecting...</span></p>
+  <p><strong>State:</strong> <span id="region">Detecting...</span></p>
 <p><strong> Browser:</strong> <img id="browserIcon" src="" style="height: 16px; vertical-align: middle;" /> <span id="browserName">Detecting...</span></p>
-  <p><strong>Region:</strong> <span id="region">Detecting...</span></p>
+<p><strong>️ OS:</strong> <img id="osIcon" src="" style="height: 16px; vertical-align: middle;" /> <span id="osName">Detecting...</span></p>
 <p><strong>Timezone:</strong> <span id="timezone">Detecting...</span></p>
 
 </div>
@@ -546,8 +546,9 @@ fetch("https://ipinfo.io/json?token=324708c6bee796")
       document.getElementById("ipAddress").textContent = data.ip || "N/A";
       document.getElementById("country").textContent = data.country || "N/A";
       document.getElementById("flagIcon").src = data.country ? `https://flagcdn.com/16x12/${data.country.toLowerCase()}.png` : "";
-      document.getElementById("provider").textContent = data.org || "N/A";
-      document.getElementById("region").textContent = data.region || "N/A";
+      const rawOrg = data.org || "N/A";  // Example: "AS13335 Cloudflare, Inc."
+      const ispName = rawOrg.replace(/^AS\d+\s*/i, '').trim();  // Only remove AS12345
+      document.getElementById("provider").textContent = ispName || "N/A";      document.getElementById("region").textContent = data.region || "N/A";
       document.getElementById("timezone").textContent = data.timezone || "N/A";
       const browser = detectBrowserName();
       document.getElementById("browserName").textContent = browser.name;
