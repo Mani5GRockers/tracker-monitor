@@ -166,8 +166,6 @@ return ($httpCode >= 200 && $httpCode < 500);
 }
 }
 
-foreach ($trackers as $url => &$t) {
-    $online = isOnline($url);
     $t['last_checked'] = getCurrentTime();
     if ($online) {
         $t['last_status'] = 'Online';
