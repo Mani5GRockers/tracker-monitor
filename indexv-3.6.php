@@ -407,7 +407,7 @@ $rank++;
     <td><?= $t['ip'] ?></td>
 <td>
     <?php if (!empty($t['country_code'])): ?>
-        <img src="https://flagcdn.com/24x18/<?= strtolower($t['country_code']) ?>.png" 
+<img loading="lazy" src="https://flagcdn.com/24x18/<?= strtolower($t['country_code']) ?>.png" 
              alt="<?= $t['country'] ?>" 
              style="vertical-align: middle; margin-right: 5px; border:1px solid #ccc; border-radius:2px;" />
     <?php endif; ?>
