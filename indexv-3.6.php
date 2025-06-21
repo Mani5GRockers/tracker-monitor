@@ -454,7 +454,7 @@ $rank++;
 </center>
 
 <script>
-
+ob_start();
 function updateTrackerStats() {
     fetch('tracker_summary.php')
         .then(res => res.json())
@@ -560,6 +560,8 @@ fetch("https://ipinfo.io/json?token=324708c6bee796")
       document.getElementById("osName").textContent = os.name;
       document.getElementById("osIcon").src = os.icon;
   });
+ob_end_flush();
+
 </script>
 
 </body>
