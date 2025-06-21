@@ -36,17 +36,12 @@ function getCountryFlag($code) {
 }
 
 function getGeoIP($ip) {
-    $cacheFile = __DIR__ . '/geo_cache.json';
-    $cache = file_exists($cacheFile) ? json_decode(file_get_contents($cacheFile), true) : [];
-
-    if (isset($cache[$ip])) return $cache[$ip];
-
     $ch = curl_init("http://ip-api.com/json/{$ip}?fields=country,countryCode,isp");
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_TIMEOUT, 5);
     $response = curl_exec($ch);
     curl_close($ch);
-    $geo = json_decode($response, true);
+    return json_decode($response, true);
 }
 
 $trackers = file_exists(DATA_FILE) ? json_decode(file_get_contents(DATA_FILE), true) : [];
@@ -66,20 +61,6 @@ if ($isValid && !isset($trackers[$url])) {
         continue;
     }
 
-  if ($geo && isset($geo['country'])) {
-        $cache[$ip] = $geo;
-        file_put_contents($cacheFile, json_encode($cache));
-    }
-
-    return $geo;
-}
-
-
-    $geo = getGeoIP($ip);
-    $country = $geo['country'] ?? 'Unknown';
-    $flag = isset($geo['countryCode']) ? getCountryFlag($geo['countryCode']) : '';
-    $isp = $geo['isp'] ?? 'Unknown';
-
     // Check if tracker is online before adding
     if (!isOnline($url)) {
         continue; // Skip offline trackers
@@ -94,7 +75,10 @@ if ($ip === '127.0.0.1') {
 if (strtolower($isp) === 'Unknown' || strtolower($country) === 'Unknown') {
     continue; // Skip
 }
-
+    $geo = getGeoIP($ip);
+    $country = $geo['country'] ?? 'Unknown';
+    $flag = isset($geo['countryCode']) ? getCountryFlag($geo['countryCode']) : '';
+    $isp = $geo['isp'] ?? 'Unknown';
 // Block specific ISPs like Cloudflare
 $blockedISPs = ['cloudflare', 'cloudflarenet', 'cloudflare inc.'];
 $normalizedISP = strtolower($isp);
@@ -166,6 +150,8 @@ return ($httpCode >= 200 && $httpCode < 500);
 }
 }
 
+foreach ($trackers as $url => &$t) {
+    $online = isOnline($url);
     $t['last_checked'] = getCurrentTime();
     if ($online) {
         $t['last_status'] = 'Online';
@@ -315,7 +301,7 @@ function getUptime($s, $f) {
       <a href="https://github.com/Mani5GRockers/tracker-monitor" style="color: white; text-decoration: none; font-weight: bold;">📂 Source</a>
     </li>
     <li style="margin: 0 10px;">
-      <a href="about.php" style="color: white; text-decoration: none; font-weight: bold;">ℹ️ About</a>
+      <a href="about.php" style="color: white; text-decoration: none; font-weight: bold;">️ About</a>
     </li>
   </ul>
 </nav>
@@ -404,7 +390,7 @@ unset($data);
 <?php
 if ($rank === 1) echo "🥇";
 elseif ($rank === 2) echo "🥈";
-elseif ($rank === 3) echo "🥉";
+elseif ($rank === 3) echo "";
 else echo $rank;
 $rank++;
 ?>
@@ -418,7 +404,7 @@ $rank++;
     <td><?= $t['ip'] ?></td>
 <td>
     <?php if (!empty($t['country_code'])): ?>
-<img loading="lazy" src="https://flagcdn.com/24x18/<?= strtolower($t['country_code']) ?>.png" 
+       <img loading="lazy" src="https://flagcdn.com/24x18/<?= strtolower($t['country_code']) ?>.png" 
              alt="<?= $t['country'] ?>" 
              style="vertical-align: middle; margin-right: 5px; border:1px solid #ccc; border-radius:2px;" />
     <?php endif; ?>
@@ -463,118 +449,7 @@ $rank++;
 
 </div>
 </center>
-
-<script>
-ob_start();
-function updateTrackerStats() {
-    fetch('tracker_summary.php')
-        .then(res => res.json())
-        .then(data => {
-            document.getElementById('trackerStats').innerHTML =
-    `🟢 Online: ${data.live} / 🔴 Offline: ${data.down} / 🌐 Total: ${data.total}`;
-
-        })
-        .catch(() => {
-            document.getElementById('trackerStats').innerText = "⚠️ Failed to load tracker stats.";
-        });
-}
-
-updateTrackerStats(); // first load
-setInterval(updateTrackerStats, 15000); // auto-refresh every 15 sec
-</script>
-
-<script>
-function filterByProtocol() {
-    const selected = document.getElementById("protocolFilter").value;
-    const rows = document.querySelectorAll("#tracker-table tbody tr");
-    rows.forEach(row => {
-        const protocol = row.children[2].textContent.trim().toUpperCase();
-        if (selected === "ALL" || protocol === selected) {
-            row.style.display = "";
-        } else {
-            row.style.display = "none";
-        }
-    });
-}
-
-</script>
-
-<script>
-function copyToClipboard(btn) {
-    const text = btn.parentElement.querySelector(".tracker-url").textContent;
-    navigator.clipboard.writeText(text).then(() => {
-        btn.innerText = "Copied!";
-        setTimeout(() => btn.innerText = "Copy", 1000);
-    });
-}
-
-function filterTable() {
-    let q = document.getElementById("searchBox").value.toLowerCase();
-    let rows = document.querySelectorAll("#trackers tbody tr");
-    rows.forEach(row => {
-        let url = row.querySelector("td:nth-child(2)")?.innerText.toLowerCase();
-        let country = row.querySelector("td:nth-child(4)")?.innerText.toLowerCase();
-        row.style.display = (url.includes(q) || country.includes(q)) ? "" : "none";
-    });
-}
-
-
-function detectBrowserName() {
-    const ua = navigator.userAgent;
-
-    if (ua.includes("Brave")) return { name: "Brave", icon: "https://img.icons8.com/color/48/000000/brave.png" };
-    if (ua.includes("Vivaldi")) return { name: "Vivaldi", icon: "https://img.icons8.com/color/48/000000/vivaldi-browser.png" };
-    if (ua.includes("SamsungBrowser")) return { name: "Samsung Internet", icon: "https://img.icons8.com/color/48/000000/samsung-internet.png" };
-    if (ua.includes("DuckDuckGo")) return { name: "DuckDuckGo", icon: "https://img.icons8.com/color/48/000000/duckduckgo.png" };
-    if (ua.includes("UCBrowser")) return { name: "UC Browser", icon: "https://img.icons8.com/color/48/000000/uc-browser.png" };
-    if (ua.includes("Edg")) return { name: "Edge", icon: "https://img.icons8.com/color/48/000000/ms-edge-new.png" };
-    if (ua.includes("OPR") || ua.includes("Opera")) return { name: "Opera", icon: "https://img.icons8.com/color/48/000000/opera.png" };
-    if (ua.includes("Firefox")) return { name: "Firefox", icon: "https://img.icons8.com/color/48/000000/firefox.png" };
-    if (ua.includes("Safari") && !ua.includes("Chrome")) return { name: "Safari", icon: "https://img.icons8.com/color/48/000000/safari--v1.png" };
-    if (ua.includes("Chrome") && !ua.includes("Edg")) return { name: "Chrome", icon: "https://img.icons8.com/color/48/000000/chrome.png" };
-    if (ua.includes("Maxthon")) return { name: "Maxthon", icon: "https://img.icons8.com/color/48/000000/maxthon.png" };
-    if (ua.includes("Yandex")) return { name: "Yandex", icon: "https://img.icons8.com/color/48/000000/yandex-browser.png" };
-    if (ua.includes("Baidu")) return { name: "Baidu Browser", icon: "https://img.icons8.com/color/48/000000/baidu.png" };
-    if (ua.includes("Tor")) return { name: "Tor Browser", icon: "https://img.icons8.com/color/48/000000/tor-browser.png" };
-    if (ua.includes("Avant")) return { name: "Avant Browser", icon: "https://img.icons8.com/ios-filled/50/000000/a.png" };
-    if (ua.includes("MiuiBrowser")) return { name: "Mi Browser", icon: "https://img.icons8.com/color/48/000000/xiaomi.png" };
-    if (ua.includes("360Browser")) return { name: "360 Browser", icon: "https://img.icons8.com/color/48/000000/360.png" };
-
-    return { name: "Unknown", icon: "https://img.icons8.com/ios/50/000000/help.png" };
-}
-
-function detectOS() {
-    const platform = navigator.userAgent;
-    if (platform.includes("Win")) return { name: "Windows", icon: "https://img.icons8.com/color/48/000000/windows-10.png" };
-    if (platform.includes("Mac")) return { name: "macOS", icon: "https://img.icons8.com/color/48/000000/mac-os.png" };
-    if (platform.includes("Linux")) return { name: "Linux", icon: "https://img.icons8.com/color/48/000000/linux.png" };
-    if (platform.includes("Android")) return { name: "Android", icon: "https://img.icons8.com/color/48/000000/android-os.png" };
-    if (platform.includes("iPhone") || platform.includes("iPad")) return { name: "iOS", icon: "https://img.icons8.com/color/48/000000/ios-logo.png" };
-    return { name: "Unknown", icon: "" };
-}
-
-fetch("https://ipinfo.io/json?token=324708c6bee796")
-  .then(res => res.json())
-  .then(data => {
-      document.getElementById("ipAddress").textContent = data.ip || "N/A";
-      document.getElementById("country").textContent = data.country || "N/A";
-      document.getElementById("flagIcon").src = data.country ? `https://flagcdn.com/16x12/${data.country.toLowerCase()}.png` : "";
-      const rawOrg = data.org || "N/A";  // Example: "AS13335 Cloudflare, Inc."
-      const ispName = rawOrg.replace(/^AS\d+\s*/i, '').trim();  // Only remove AS12345
-      document.getElementById("provider").textContent = ispName || "N/A";      document.getElementById("region").textContent = data.region || "N/A";
-      document.getElementById("timezone").textContent = data.timezone || "N/A";
-      const browser = detectBrowserName();
-      document.getElementById("browserName").textContent = browser.name;
-      document.getElementById("browserIcon").src = browser.icon;
-
-      const os = detectOS();
-      document.getElementById("osName").textContent = os.name;
-      document.getElementById("osIcon").src = os.icon;
-  });
-ob_end_flush();
-
-</script>
-
+<script src="assets/main.js" defer></script>
 </body>
 </html>
 </html>
