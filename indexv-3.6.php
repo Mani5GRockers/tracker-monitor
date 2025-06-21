@@ -36,12 +36,17 @@ function getCountryFlag($code) {
 }
 
 function getGeoIP($ip) {
+    $cacheFile = __DIR__ . '/geo_cache.json';
+    $cache = file_exists($cacheFile) ? json_decode(file_get_contents($cacheFile), true) : [];
+
+    if (isset($cache[$ip])) return $cache[$ip];
+
     $ch = curl_init("http://ip-api.com/json/{$ip}?fields=country,countryCode,isp");
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_TIMEOUT, 5);
     $response = curl_exec($ch);
     curl_close($ch);
-    return json_decode($response, true);
+    $geo = json_decode($response, true);
 }
 
 $trackers = file_exists(DATA_FILE) ? json_decode(file_get_contents(DATA_FILE), true) : [];
@@ -61,6 +66,20 @@ if ($isValid && !isset($trackers[$url])) {
         continue;
     }
 
+  if ($geo && isset($geo['country'])) {
+        $cache[$ip] = $geo;
+        file_put_contents($cacheFile, json_encode($cache));
+    }
+
+    return $geo;
+}
+
+
+    $geo = getGeoIP($ip);
+    $country = $geo['country'] ?? 'Unknown';
+    $flag = isset($geo['countryCode']) ? getCountryFlag($geo['countryCode']) : '';
+    $isp = $geo['isp'] ?? 'Unknown';
+
     // Check if tracker is online before adding
     if (!isOnline($url)) {
         continue; // Skip offline trackers
@@ -76,12 +95,6 @@ if (strtolower($isp) === 'Unknown' || strtolower($country) === 'Unknown') {
     continue; // Skip
 }
 
-
-    $geo = getGeoIP($ip);
-    $country = $geo['country'] ?? 'Unknown';
-    $flag = isset($geo['countryCode']) ? getCountryFlag($geo['countryCode']) : '';
-    $isp = $geo['isp'] ?? 'Unknown';
-$isp = $geo['isp'] ?? 'Unknown';
 // Block specific ISPs like Cloudflare
 $blockedISPs = ['cloudflare', 'cloudflarenet', 'cloudflare inc.'];
 $normalizedISP = strtolower($isp);
