@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['trackers'])) {
     $newTrackers = array_filter(array_map('trim', explode("\n", $_POST['trackers'])));
 foreach ($newTrackers as $url) {
     $url = trim($url);
-    $isValid = preg_match('#^(udp|http|https|wss|ws)://[^/\s:]+(:\d+)?/announce$#i', $url);
+    $isValid = preg_match('#^(udp|http|https)://[^/\s:]+(:\d+)?/announce$#i', $url);
 
 if ($isValid && !isset($trackers[$url])) {
     $host = parse_url($url, PHP_URL_HOST);
@@ -296,7 +296,7 @@ function getUptime($s, $f) {
       <a href="list.php" style="color: white; text-decoration: none; font-weight: bold;">📄 List</a>
     </li>
     <li style="margin: 0 10px;">
-      <a href="submitted.php" style="color: white; text-decoration: none; font-weight: bold;">📥 Submitted</a>
+      <a href="online.php" style="color: white; text-decoration: none; font-weight: bold;"> Online</a>
     </li>
     <li style="margin: 0 10px;">
       <a href="faq.php" style="color: white; text-decoration: none; font-weight: bold;">❓ FAQ</a>
@@ -314,7 +314,7 @@ function getUptime($s, $f) {
     <h2 style="text-align: center;">🌐 Add Torrent Trackers</h2>
        <form method="post" style="background-color: #e6f0ff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
     <p style="color: #007bff; font-weight: bold; text-align: center; margin-bottom: 10px;">
-        ✅ Only <code>udp/http/https/ws/wss</code> URLs ending with <code>/announce</code> are allowed.
+        ✅ Only <code>udp/http/https</code> URLs ending with <code>/announce</code> are allowed.
     </p> <textarea 
             name="trackers" 
             placeholder="Paste tracker URLs one per line..." 
@@ -323,7 +323,7 @@ function getUptime($s, $f) {
   <button 
       type="submit" 
       style="background-color: #087f23; color: white; padding: 20px 80px; border: none; border-radius: 10px; cursor: pointer;">
-      🚀 Submit Now
+       Submit Now
   </button>
   
   
@@ -338,7 +338,7 @@ function getUptime($s, $f) {
     <input type="text" id="searchBox" placeholder="Search tracker or country..." onkeyup="filterTable()" 
         style="padding: 6px; flex: 2; min-width: 150px; border: 2px solid #007bff; border-radius: 5px;">
     <div id="trackerStats" style="font-weight: bold; flex: 1; text-align: right;">
-        🟢 Online: 0 /  Offline: 0 / 🌐 Total: 0
+         Online: 0 /  Offline: 0 / 🌐 Total: 0
     </div>
 </div>
 
@@ -394,7 +394,7 @@ unset($data);
 <?php
 if ($rank === 1) echo "🥇";
 elseif ($rank === 2) echo "🥈";
-elseif ($rank === 3) echo "";
+elseif ($rank === 3) echo "🥉";
 else echo $rank;
 $rank++;
 ?>
@@ -448,7 +448,7 @@ $rank++;
 <p><strong> Country:</strong> <img id="flagIcon" src="" style="height: 16px; vertical-align: middle;" /> <span id="country">Detecting...</span></p>
   <p><strong>State:</strong> <span id="region">Detecting...</span></p>
 <p><strong> Browser:</strong> <img id="browserIcon" src="" style="height: 16px; vertical-align: middle;" /> <span id="browserName">Detecting...</span></p>
-<p><strong>️ OS:</strong> <img id="osIcon" src="" style="height: 16px; vertical-align: middle;" /> <span id="osName">Detecting...</span></p>
+<p><strong> OS:</strong> <img id="osIcon" src="" style="height: 16px; vertical-align: middle;" /> <span id="osName">Detecting...</span></p>
 <p><strong>Timezone:</strong> <span id="timezone">Detecting...</span></p>
 
 </div>
